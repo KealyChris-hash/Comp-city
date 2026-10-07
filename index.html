@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMP CITY</title>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#0a0e1a;color:#fff}
+header{display:flex;justify-content:space-between;padding:15px;background:#111827;position:sticky;top:0}
+.logo{color:#22c55e;font-weight:bold;font-size:22px}
+.btn{background:#22c55e;color:#000;border:none;padding:10px 16px;border-radius:20px;font-weight:bold;cursor:pointer}
+.container{max-width:1000px;margin:auto;padding:15px}
+.card{background:#1f2937;padding:20px;border-radius:14px;margin:12px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.premium{border:2px solid #facc15;position:relative}
+.premium::after{content:"PREMIUM 🔒";position:absolute;top:-10px;right:10px;background:#facc15;color:#000;padding:4px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+.lock{filter:blur(5px);pointer-events:none}
+.input{width:100%;padding:12px;border-radius:8px;border:none;margin:6px 0;background:#374151;color:white}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:30}
+.modal.active{display:flex}
+.box{background:#1f2937;padding:22px;border-radius:14px;width:92%;max-width:420px}
+.pay{padding:12px;background:#374151;border-radius:8px;margin:6px 0;cursor:pointer;display:flex;justify-content:space-between}
+.pay:hover{background:#4b5563}
+.hidden{display:none}
+.free-tag{background:#22c55e;color:#000;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">COMP CITY 🖥️</div>
+  <div><span id="userShow" style="font-size:13px;color:#9ca3af"></span> <button class="btn" onclick="openAuth()" id="authBtn">Sign In / Up</button></div>
+</header>
+
+<div class="container">
+
+  <div class="card" style="text-align:center">
+    <h3>Verify Human</h3>
+    <div style="display:flex;justify-content:center;margin:10px"><div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="ok"></div></div>
+    <p id="vmsg" style="color:#9ca3af">Complete I'm not robot to continue</p>
+  </div>
+
+  <div id="main" class="hidden">
+    <h3>Free Courses <span class="free-tag">FREE</span></h3>
+    <div class="grid">
+      <div class="card"><h4>📝 Microsoft Word</h4><p>Type CV, letters, save, print</p><button class="btn" style="width:100%;margin-top:8px" onclick="openLesson('word')">Start Word</button></div>
+      <div class="card"><h4>📊 Microsoft PowerPoint</h4><p>Make slides for business</p><button class="btn" style="width:100%;margin-top:8px" onclick="openLesson('ppt')">Start PowerPoint</button></div>
+      <div class="card"><h4>📈 Microsoft Excel</h4><p>Formulas, sales record</p><button class="btn" style="width:100%;margin-top:8px" onclick="openLesson('excel')">Start Excel</button></div>
+    </div>
+
+    <h3 style="margin-top:20px">Premium - Build & Code</h3>
+    <div class="grid">
+      <div class="card premium"><div class="lock" id="l1"><h4>🌐 Build Website</h4><p>HTML CSS JS full site</p></div><button class="btn" style="background:#facc15;width:100%" onclick="openPay()">Unlock ₦5k</button></div>
+      <div class="card premium"><div class="lock" id="l2"><h4>📱 Build Mobile Apps</h4><p>Android apps</p></div><button class="btn" style="background:#facc15;width:100%" onclick="openPay()">Unlock ₦5k</button></div>
+      <div class="card premium"><div class="lock" id="l3"><h4>🧩 Scratch Coding</h4><p>Make games drag & drop</p></div><button class="btn" style="background:#facc15;width:100%" onclick="openPay()">Unlock ₦5k</button></div>
+      <div class="card premium"><div class="lock" id="l4"><h4>💻 Learn Coding</h4><p>Python, JS, real coding</p></div><button class="btn" style="background:#facc15;width:100%" onclick="openPay()">Unlock ₦5k</button></div>
+    </div>
+  </div>
+
+  <div id="lessonBox" class="card hidden"></div>
+</div>
+
+<!-- AUTH - NO FIREBASE, PURE JS -->
+<div class="modal" id="auth">
+  <div class="box">
+    <h2 id="aTitle">Create Account</h2>
+    <input class="input" id="aEmail" placeholder="Email">
+    <input class="input" id="aPhone" placeholder="Phone Number">
+    <input class="input" type="password" id="aPass" placeholder="Password (min 4)">
+    <button class="btn" style="width:100%" onclick="signUp()">Create Account</button>
+    <div style="text-align:center;margin:12px 0;color:#9ca3af">OR</div>
+    <button class="btn" style="width:100%;background:white" onclick="fakeLogin('Google')">🔵 Continue with Google</button>
+    <button class="btn" style="width:100%;background:black;color:white;margin-top:6px" onclick="fakeLogin('Apple')">🍎 Continue with Apple</button>
+    <button class="btn" style="width:100%;background:#25D366;color:white;margin-top:6px" onclick="fakeLogin('Phone')">📱 Continue with Phone Number</button>
+    <p style="text-align:center;margin-top:12px;font-size:13px"><span onclick="toggleA()" style="color:#22c55e;cursor:pointer" id="toggleTxt">Already have account? Sign In</span> | <span onclick="closeA()" style="color:gray;cursor:pointer">Close</span></p>
+  </div>
+</div>
+
+<!-- PAYMENT - NO PAYSTACK, CUSTOM -->
+<div class="modal" id="pay">
+  <div class="box">
+    <h2>Unlock Premium - ₦5,000</h2>
+    <p style="color:#9ca3af;font-size:13px">Choose how you want to pay</p>
+    <div class="pay" onclick="showPay('visa')"><span>💳 Visa / Mastercard / Verve</span><span>→</span></div>
+    <div class="pay" onclick="showPay('bank')"><span>🏦 Bank Transfer</span><span>→</span></div>
+    <div class="pay" onclick="showPay('other')"><span>💳 Other Cards (Amex, Union)</span><span>→</span></div>
+    
+    <div id="visaBox" class="hidden">
+      <input class="input" id="cnum" placeholder="Card Number">
+      <div style="display:flex;gap:8px"><input class="input" placeholder="MM/YY"><input class="input" placeholder="CVV"></div>
+      <input class="input" placeholder="Card Name">
+      <button class="btn" style="width:100%;background:#facc15" onclick="confirmPay()">Pay ₦5,000</button>
+    </div>
+    <div id="bankBox" class="hidden" style="background:#111827;padding:10px;border-radius:8px">
+      <p>Transfer to:</p><b>OPay 7041234567 - Comp City</b><br><small>Account Name: Jiga Ventures</small>
+      <input class="input" placeholder="Enter transfer reference / your name">
+      <button class="btn" style="width:100%;background:#facc15" onclick="confirmPay()">I Have Paid</button>
+    </div>
+    <div id="otherBox" class="hidden">
+      <input class="input" placeholder="Card Type (Amex etc)">
+      <input class="input" placeholder="Card Number">
+      <button class="btn" style="width:100%;background:#facc15" onclick="confirmPay()">Pay</button>
+    </div>
+    <button class="btn" style="width:100%;background:transparent;border:1px solid gray;color:gray;margin-top:8px" onclick="closeP()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// STORAGE - NO FIREBASE
+let users = JSON.parse(localStorage.getItem('comp_users')||'[]');
+let current = localStorage.getItem('comp_current');
+let isPremium = localStorage.getItem('comp_premium')=='yes';
+
+if(current){document.getElementById('userShow').innerText=current; document.getElementById('authBtn').innerText='Logout'; if(isPremium) unlockAll()}
+function ok(){document.getElementById('vmsg').innerText='✅ Verified';document.getElementById('main').classList.remove('hidden')}
+
+function openAuth(){
+  if(current){ // logout
+    localStorage.removeItem('comp_current');
+    location.reload(); return;
+  }
+  document.getElementById('auth').classList.add('active')
+}
+function closeA(){document.getElementById('auth').classList.remove('active')}
+function toggleA(){
+  let t=document.getElementById('aTitle');
+  if(t.innerText.includes('Create')){t.innerText='Sign In'; document.getElementById('toggleTxt').innerText='No account? Sign Up'} 
+  else{t.innerText='Create Account'; document.getElementById('toggleTxt').innerText='Already have account? Sign In'}
+}
+function signUp(){
+  let e=document.getElementById('aEmail').value.trim();
+  let p=document.getElementById('aPhone').value.trim();
+  let pw=document.getElementById('aPass').value;
+  if(!e||!pw){alert('Fill email & password');return}
+  let mode=document.getElementById('aTitle').innerText;
+  if(mode.includes('Create')){
+    if(users.find(u=>u.email==e)){alert('Email exists, sign in');return}
+    users.push({email:e,phone:p,pass:pw});
+    localStorage.setItem('comp_users',JSON.stringify(users));
+  }else{
+    let u=users.find(u=>u.email==e && u.pass==pw);
+    if(!u){alert('Wrong email/password. If new, click Sign Up');return}
+  }
+  localStorage.setItem('comp_current',e);
+  alert('Welcome '+e); closeA(); location.reload();
+}
+function fakeLogin(type){
+  let name=prompt('Enter your '+type+' email/phone to simulate '+type+' login:');
+  if(!name) return;
+  localStorage.setItem('comp_current', name+' ('+type+')');
+  alert(type+' login success! Welcome '+name);
+  closeA(); location.reload();
+}
+
+// PAYMENT NO PAYSTACK
+function openPay(){if(!current){alert('Sign in first');openAuth();return} document.getElementById('pay').classList.add('active')}
+function closeP(){document.getElementById('pay').classList.remove('active')}
+function showPay(t){
+  document.getElementById('visaBox').classList.add('hidden');
+  document.getElementById('bankBox').classList.add('hidden');
+  document.getElementById('otherBox').classList.add('hidden');
+  if(t=='visa') document.getElementById('visaBox').classList.remove('hidden');
+  if(t=='bank') document.getElementById('bankBox').classList.remove('hidden');
+  if(t=='other') document.getElementById('otherBox').classList.remove('hidden');
+}
+function confirmPay(){
+  localStorage.setItem('comp_premium','yes');
+  unlockAll(); closeP();
+  alert('✅ Payment confirmed! Premium unlocked (demo - no real Paystack needed)');
+}
+function unlockAll(){
+  document.querySelectorAll('.lock').forEach(e=>{e.classList.remove('lock');e.style.filter='none'});
+  document.querySelectorAll('.premium .btn').forEach(b=>{b.innerText='Start Course';b.style.background='#22c55e';b.onclick=()=>openLesson('premium')});
+}
+
+function openLesson(type){
+  if(!current){openAuth();return}
+  let box=document.getElementById('lessonBox');
+  box.classList.remove('hidden');
+  if(type=='word') box.innerHTML='<h3>Microsoft Word Training</h3><p>1. Open Word<br>2. Type your CV<br>3. Ctrl+B = Bold<br>4. Ctrl+S = Save</p><textarea class="input" style="height:100px" placeholder="Practice typing here..."></textarea><button class="btn" onclick="this.parentElement.classList.add(`hidden`)">Done</button>';
+  if(type=='ppt') box.innerHTML='<h3>PowerPoint Training</h3><p>Slide 1: Title<br>Slide 2: Content<br>Use Design > Themes</p><button class="btn" onclick="this.parentElement.classList.add(`hidden`)">Done</button>';
+  if(type=='excel') box.innerHTML='<h3>Excel Training</h3><p>A1: Product | B1: Price<br>=SUM(B2:B10) to total<br>=AVERAGE for average</p><div style="display:grid;grid-template-columns:1fr 1fr"><input class="input" value="Garri"><input class="input" value="500"><input class="input" value="Rice"><input class="input" value="1200"></div><button class="btn" onclick="this.parentElement.classList.add(`hidden`)">Done</button>';
+  if(type=='premium') box.innerHTML='<h3>Premium Unlocked!</h3><p>🌐 Website: Use HTML you have<br>📱 Apps: Coming<br>🧩 Scratch: scratch.mit.edu<br>💻 Coding: console.log(\"Hello Comp City\")</p><button class="btn" onclick="this.parentElement.classList.add(`hidden`)">Close</button>';
+  box.scrollIntoView();
+}
+</script>
+</body>
+</html>
